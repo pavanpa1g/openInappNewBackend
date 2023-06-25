@@ -22,6 +22,15 @@ app.post('/signup', async (req, res) => {
   try {
     await client.connect();
 
+    if(!email || !password || !name){
+      return res.status(401).json({message:"Fill all the required fields"})
+    }
+
+
+    if(password.length<6){
+      return res.status(401).json({message:"Password must be more than 6 characters"})
+    }
+
     const collection = client.db('openinapp').collection('users');
 
 
@@ -52,17 +61,23 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
+  console.log(req.body)
+
   try {
     await client.connect();
 
     const collection = client.db('openinapp').collection('users');
+
+
+    if(!email || !password){
+      return res.status(401).json({message:"Enter all the required fields"})
+    }
 
     const user = await collection.findOne({ email, password });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-
 
     const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
