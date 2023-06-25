@@ -1,6 +1,7 @@
 
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const cors = require('cors');
 const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
@@ -12,6 +13,7 @@ const uri = `mongodb+srv://pavangattu5:${process.env.PASSWORD}@cluster0.go1mcti.
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+app.use(cors())
 app.use(express.json());
 
 app.post('/signup', async (req, res) => {
