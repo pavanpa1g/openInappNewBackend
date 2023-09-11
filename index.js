@@ -6,6 +6,7 @@ const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 const port = process.env.PORT || 3001;
 
 const uri = `mongodb+srv://pavangattu5:${process.env.PASSWORD}@cluster0.go1mcti.mongodb.net/?retryWrites=true&w=majority`;
@@ -57,7 +58,6 @@ app.post('/signup', async (req, res) => {
 
 
 
-
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -89,6 +89,124 @@ app.post('/login', async (req, res) => {
     await client.close();
   }
 });
+
+
+
+app.post('/comments',async (req, res)=>{
+  const{comment,user_id,image_id}=req.body
+
+
+
+  try {
+    await client.connect();
+
+    const collection = client.db('openinapp').collection('comments');
+
+    if (!comment || !user_id || !image_id){
+      return res.status(401).json({error:"Enter all the input fields (comment,user_id,image_id)"})
+    }
+
+
+
+    const newComment = {
+      comment,user_id,image_id,comment_id:uuidv4(),date:new Date()
+    }
+
+
+
+    const result = await collection.insertOne(newComment)
+
+    return res.status(200).json({message:"comment successfully added!",result})
+
+
+
+  } catch (error) {
+    console.log('Error posting comment in:', error);
+    return res.status(500).json({ message: 'Internal server error',error });
+  }
+  finally{
+    await client.close()
+  }
+})
+
+
+
+app.get("/comments", async (req,res)=>{
+
+  const {image_id} = req.body
+
+try {
+  await client.connect();
+
+  const collection = client.db('openinapp').collection('comments');
+
+  const comments = await  collection.find({image_id}).toArray()
+
+  return res.status(200).json({message:"successfully retrived comments",comments})
+
+} catch (error) {
+  console.log('Error getting comments in:', error);
+  return res.status(500).json({ message: 'Internal server error',error });
+}
+finally{
+  await client.close()
+}
+})
+
+
+
+app.post("/images",async (req,res)=>{
+  const {image_url} = req.body 
+
+  try {
+    await client.connect();
+  
+    const collection = client.db('openinapp').collection('images');
+
+    if(!image_url){
+      return res.status(401).json({error:"Provide the url"})
+    }
+
+    const imageData = {
+      image_url,image_id:uuidv4(),date:new Date()
+    }
+
+
+    const result = await collection.insertOne(imageData)
+
+    return res.status(200).json({message:"Successfully uploaded image",result})
+
+  }
+  catch(error){
+    console.log('Error uploading image in:', error);
+    return res.status(500).json({ message: 'Internal server error',error });
+  }
+  finally{
+    await client.close()
+  }
+  
+})
+
+
+app.get("/images",async (req,res)=>{
+
+  try {
+    await client.connect()
+    const collection = client.db('openinapp').collection('images');
+
+    const result = await collection.find().toArray()
+
+    return res.status(200).json({message:"successfully retrieved images",result})
+  
+
+  } catch (error) {
+    console.log('Error uploading image in:', error);
+    return res.status(500).json({ message: 'Internal server error',error});
+  }
+  finally{
+    await client.close()
+  }
+})
 
 
 app.get("/",(req,res)=>{
