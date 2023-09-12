@@ -133,12 +133,16 @@ app.post('/comments',async (req, res)=>{
 
 app.get("/comments", async (req,res)=>{
 
-  const {image_id} = req.body
+  const {image_id} = req.query
 
 try {
   await client.connect();
 
   const collection = client.db('openinapp').collection('comments');
+
+  if(!image_id){
+    return res.status(401).json({message:"Please Provide the image_id"})
+  }
 
   const comments = await  collection.find({image_id}).toArray()
 
