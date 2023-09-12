@@ -8,6 +8,7 @@ dotenv.config();
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const port = process.env.PORT || 3001;
+const { ObjectId } = require('mongodb');
 
 const uri = `mongodb+srv://pavangattu5:${process.env.PASSWORD}@cluster0.go1mcti.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -212,6 +213,38 @@ app.get("/images",async (req,res)=>{
     await client.close()
   }
 })
+
+
+function isValidObjectId(id) {
+  return ObjectId.isValid(id) && id.length === 24;
+}
+
+app.get("/comments/count", async (req, res) => {
+  const { image_id } = req.query;
+
+  try {
+    await client.connect();
+
+    const collection = client.db('openinapp').collection('comments');
+
+    if (!image_id) {
+      return res.status(400).json({ message: "Please provide the image_id" });
+    }
+
+    const result = await collection.countDocuments({ image_id });
+
+    console.log("Comment count:", result);
+    return res.status(200).json({ message: "Successfully retrieved", count: result });
+
+  } catch (error) {
+    console.log('Error getting comments count:', error);
+    return res.status(500).json({ message: 'Internal server error', error });
+  } finally {
+    await client.close();
+  }
+});
+
+
 
 
 app.get("/",(req,res)=>{
