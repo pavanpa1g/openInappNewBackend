@@ -93,7 +93,7 @@ app.post('/login', async (req, res) => {
 
 
 app.post('/comments',async (req, res)=>{
-  const{comment,user_id,image_id}=req.body
+  const{comment,user_id,user_name,image_id}=req.body
 
 
 
@@ -102,13 +102,14 @@ app.post('/comments',async (req, res)=>{
 
     const collection = client.db('openinapp').collection('comments');
 
-    if (!comment || !user_id || !image_id){
-      return res.status(401).json({error:"Enter all the input fields (comment,user_id,image_id)"})
+    if (!comment || !user_id || !image_id || !user_name){
+      return res.status(401).json({error:"Enter all the input fields (comment,user_id,image_id,user_name)"})
     }
 
 
 
     const newComment = {
+      user_name,
       comment,user_id,image_id,comment_id:uuidv4(),date:new Date()
     }
 
