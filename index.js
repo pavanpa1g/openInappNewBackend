@@ -18,6 +18,28 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 app.use(cors())
 app.use(express.json());
 
+
+const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization.split(" ")[1];
+  console.log("token",token)
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: Token is missing' });
+  }
+
+  jwt.verify(token, secretKey, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    }
+    req.user = decoded; // Store the user data in the request object
+    next();
+  });
+};
+
+module.exports = verifyToken;
+
+
 app.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -94,7 +116,7 @@ app.post('/login', async (req, res) => {
 
 
 app.post('/comments',async (req, res)=>{
-  const{comment,user_id,user_name,image_id}=req.body
+  const{comment,email,username,image_id}=req.body
 
 
 
@@ -103,15 +125,15 @@ app.post('/comments',async (req, res)=>{
 
     const collection = client.db('openinapp').collection('comments');
 
-    if (!comment || !user_id || !image_id || !user_name){
-      return res.status(401).json({error:"Enter all the input fields (comment,user_id,image_id,user_name)"})
+    if (!comment || !email || !image_id || !username){
+      return res.status(401).json({error:"Enter all the input fields (comment,email,image_id,username)"})
     }
 
 
 
     const newComment = {
-      user_name,
-      comment,user_id,image_id,comment_id:uuidv4(),date:new Date()
+      username,
+      comment,email,image_id,comment_id:uuidv4(),date:new Date()
     }
 
 
@@ -162,19 +184,23 @@ finally{
 
 
 app.post("/images",async (req,res)=>{
-  const {image_url} = req.body 
+  const {image_url,email,name,description} = req.body 
+  console.log(req.body)
 
   try {
     await client.connect();
   
     const collection = client.db('openinapp').collection('images');
 
-    if(!image_url){
-      return res.status(401).json({error:"Provide the url"})
+    if(!image_url || !email || !name){
+      return res.status(401).json({error:"Provide the url,email,name"})
     }
 
     const imageData = {
-      image_url,image_id:uuidv4(),date:new Date()
+      username:name,
+      email,
+      image_url,image_id:uuidv4(),date:new Date(),
+      description
     }
 
 
@@ -215,9 +241,9 @@ app.get("/images",async (req,res)=>{
 })
 
 
-function isValidObjectId(id) {
-  return ObjectId.isValid(id) && id.length === 24;
-}
+// function isValidObjectId(id) {
+//   return ObjectId.isValid(id) && id.length === 24;
+// }
 
 app.get("/comments/count", async (req, res) => {
   const { image_id } = req.query;
@@ -244,6 +270,32 @@ app.get("/comments/count", async (req, res) => {
   }
 });
 
+
+
+
+app.get("/users",verifyToken, async (req,res)=>{
+
+  const {email} = req.query
+
+try {
+  await client.connect();
+
+  const collection = client.db('openinapp').collection('users');
+
+
+
+  const userData = await  collection.find({email}).project({ password: 0 }).toArray()
+
+  return res.status(200).json({message:"successfully retrived comments",userData})
+
+} catch (error) {
+
+  return res.status(500).json({ message: 'Internal server error',error });
+}
+finally{
+  await client.close()
+}
+})
 
 
 
