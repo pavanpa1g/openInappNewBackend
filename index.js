@@ -22,11 +22,13 @@ app.use(express.json());
 const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
 
 const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization.split(" ")[1];
-  console.log("token",token)
-  if (!token) {
+  const authorizationHeader = req.headers.authorization;
+
+  if (!authorizationHeader) {
     return res.status(401).json({ message: 'Unauthorized: Token is missing' });
   }
+
+  const token = authorizationHeader.split(" ")[1];
 
   jwt.verify(token, secretKey, (err, decoded) => {
     if (err) {
@@ -36,6 +38,7 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+
 
 module.exports = verifyToken;
 
