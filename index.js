@@ -21,26 +21,26 @@ app.use(express.json());
 
 const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
 
-const verifyToken = (req, res, next) => {
-  const authorizationHeader = req.headers.authorization;
+// const verifyToken = (req, res, next) => {
+//   const authorizationHeader = req.headers.authorization;
 
-  if (!authorizationHeader) {
-    return res.status(401).json({ message: 'Unauthorized: Token is missing' });
-  }
+//   if (!authorizationHeader) {
+//     return res.status(401).json({ message: 'Unauthorized: Token is missing' });
+//   }
 
-  const token = authorizationHeader.split(" ")[1];
+//   const token = authorizationHeader.split(" ")[1];
 
-  jwt.verify(token, secretKey, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
-    }
-    req.user = decoded; // Store the user data in the request object
-    next();
-  });
-};
+//   jwt.verify(token, secretKey, (err, decoded) => {
+//     if (err) {
+//       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+//     }
+//     req.user = decoded; // Store the user data in the request object
+//     next();
+//   });
+// };
 
 
-module.exports = verifyToken;
+// module.exports = verifyToken;
 
 
 app.post('/signup', async (req, res) => {
@@ -276,7 +276,7 @@ app.get("/comments/count", async (req, res) => {
 
 
 
-app.get("/users",verifyToken, async (req,res)=>{
+app.get("/users", async (req,res)=>{
 
   const {email} = req.query
 
