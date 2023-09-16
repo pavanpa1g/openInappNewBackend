@@ -301,6 +301,30 @@ finally{
 })
 
 
+app.get("/my-images",async (req,res)=>{
+  const {email} = req.query
+
+  try {
+    await client.connect();
+
+    const collection = client.db('openinapp').collection('images');
+
+    if (!email){
+      return res.status(401).json({message:"Please provide the email"})
+    }
+
+    const result = await collection.find({email}).toArray()
+
+    return res.status(201).json({message:"successfully retrieved data",result})
+  
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error',error });
+  }
+  finally{
+    await client.close()
+  }
+})
+
 
 app.get("/",(req,res)=>{
     return res.json({message:"working"})
@@ -309,5 +333,5 @@ app.get("/",(req,res)=>{
 
 
 app.listen(port, () => {
-  console.log(`Server is running on ${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
