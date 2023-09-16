@@ -326,6 +326,60 @@ app.get("/my-images",async (req,res)=>{
 })
 
 
+
+// Toggle like/dislike for a post
+app.post('/posts/:postId', async (req, res) => {
+  const id = req.params.postId;
+
+  const imageObjectId = new ObjectId(id)
+
+  const {email} = req.body  // Assuming you have user authentication in place
+
+  try {
+
+    await client.connect();
+
+    const collection = client.db('openinapp').collection('images');
+
+    const post = await collection.findOne({ _id:imageObjectId });
+
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const likedByUser = post.likedBy.includes(email);
+
+    if (likedByUser) {
+      // If the user has already liked the post, remove the like
+      await collection.updateOne(
+        { _id:imageObjectId }, {
+        $inc: { likes: -1 },
+        $pull: { likedBy: email },
+      });
+    } else {
+      // If the user has not liked the post, add the like
+      await collection.updateOne(
+        { _id:imageObjectId }, {
+        $inc: { likes: 1 },
+        $addToSet: { likedBy: email },
+      });
+    }
+
+    const updatedPost = await collection.findOne({ _id:imageObjectId });
+
+    return res.status(201).json(updatedPost);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+  finally{
+    await client.close()
+  }
+});
+
+
+
 app.get("/",(req,res)=>{
     return res.json({message:"working"})
 })
