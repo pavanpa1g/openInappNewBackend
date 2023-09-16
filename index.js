@@ -243,6 +243,34 @@ app.get("/images",async (req,res)=>{
   }
 })
 
+app.get("/image/:imageId",async(req,res)=>{
+  const imageId = req.params.imageId
+
+  let  imageObjectId
+  try {
+    imageObjectId = new ObjectId(imageId)
+  } catch (error) {
+    return res.status(400).json({ message: 'Invalid image_id' });
+  }
+
+  try {
+    await client.connect()
+    const collection = client.db('openinapp').collection('images');
+    
+
+    const result = await collection.findOne({_id:imageObjectId})
+    if(!result){
+      return  res.status(404).send("Image not found")
+    }
+    return   res.status(200).json({result})
+  } catch (error) {
+    console.log('Error getting image data in:', error);
+    return res.status(500).json({ message: 'Internal server error',error});
+  }
+  finally{
+    await client.close()
+  }
+})
 
 // function isValidObjectId(id) {
 //   return ObjectId.isValid(id) && id.length === 24;
