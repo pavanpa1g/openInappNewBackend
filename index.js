@@ -15,7 +15,7 @@ const uri = `mongodb+srv://pavangattu5:${process.env.PASSWORD}@cluster0.go1mcti.
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001','https://open-inapp-new-backend.vercel.app'] }))
+app.use(cors())
 app.use(express.json());
 
 
